@@ -32,13 +32,13 @@ def load_memorybank():
 
     return bank
 
-def load_model(encoder,env):
+def load_model(model_path,encoder,env):
     feature_example = [encoder[x] for x in str(env.reset()).split()]
     feature_example.append(1) #1 for white, -1 for black
     feature_example = np.array([feature_example])
 
     try:
-        model = keras.models.load_model("chess_model-v1.mdl")
+        model = keras.models.load_model(model_path)
         print("loaded model successfully!")
 
     except:
@@ -49,21 +49,23 @@ def load_model(encoder,env):
         model.add(keras.layers.Dense(128, activation='relu'))
         model.add(keras.layers.Dense(1, activation='relu'))
         model.compile(optimizer=keras.optimizers.Adam(lr=0.001), loss='mean_squared_error', metrics=["accuracy"])
-        model.save("chess_model-v1.mdl")
+        model.save(model_path)
+        #model.save("chess_model-v1.mdl")
 
     return model
 
-def save_data(model,memory):
+def save_data(model_path,model,memory):
     try:
-        model.save("chess_model-v1.mdl")
+        #model.save("chess_model-v1.mdl")
+        model.save(model_path)
         pickle.dump(memory, open("gameplay_memory-v1.mem", "wb"))
         print("Data saved.")
     except Exception as e:
         print("Failed to save data!")
         print(str(e))
 
-def load_data(encoder,env):
-    return load_model(encoder,env),load_memorybank()
+def load_data(model_path,encoder,env):
+    return load_model(model_path,encoder,env),load_memorybank()
 
 def create_training_data(mem,batchsize=64):
     batch = random.sample(mem,batchsize)
@@ -74,7 +76,7 @@ def create_training_data(mem,batchsize=64):
 
 def train_model(model,memory):
     if len(memory) > 1000:
-        feat, labels = create_training_data(memory)
+        feat, labels = create_training_data(memory, batchsize=128)
         model.fit(feat[0], labels, epochs=1, batch_size=32, verbose=1)
 
     else:

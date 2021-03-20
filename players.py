@@ -3,15 +3,17 @@ from math import inf
 import numpy as np
 
 class Player:
-    def __init__(self, team: int, encoder: dict):
+    def __init__(self, team: int, encoder: dict,boosted_rewards:bool):
         self.team = 1 if team == 1 else -1
         self.encoder = encoder
+        self.boosted_rewards = boosted_rewards
         self.history = []
 
     def generate_move(self, env):
+        starting_board = self.encode_env(env)
         action = random.sample(list(env.legal_moves), 1)[0]
         env.push(action)
-        self.history.append(self.encode_env(env))
+        self.history.append([starting_board,self.encode_env(env)])
         return action
 
     def encode_env(self, env) -> list:
@@ -19,11 +21,32 @@ class Player:
         temp.append(self.team)
         return np.array([temp])
 
+    def get_board_score(self,encoded_board):
+        score = 0
+        if self.team == 0:
+            for i in range(encoded_board[0].shape[0]):
+                if encoded_board[0][i] > 0:
+                    score+= abs(encoded_board[0][i])
+        else:
+            for i in range(encoded_board[0].shape[0]):
+                if encoded_board[0][i] < 0:
+                    score+= abs(encoded_board[0][i])
+
+        return score
+
     def finalize_data(self, reward: int) -> list:
         reward_chunk = reward / len(self.history)
         labeled_data = []
         for i in range(len(self.history)):
-            labeled_data.append([self.history[i], reward_chunk * (i + 1)])
+            if i < len(self.history) and self.boosted_rewards:
+                before = self.get_board_score(self.history[i][0])
+                after = self.get_board_score(self.history[i][1])
+                if after < before:
+                    labeled_data.append([self.history[i][1],before-after])
+                else:
+                    labeled_data.append([self.history[i][1], reward_chunk * (i + 1)])
+            else:
+                labeled_data.append([self.history[i][1], reward_chunk * (i + 1)])
 
         return labeled_data
 
@@ -31,13 +54,14 @@ class Player:
         return f"Random mover {'-WHITE' if self.team == 1 else '-BLACK'} "
 
 class ML_Player(Player):
-    def __init__(self, team: int, encoder: dict,model,epsilon=0.9):
-        super().__init__(team, encoder)
+    def __init__(self, team: int, encoder: dict,boosted_rewards:bool,model,epsilon=0.9):
+        super().__init__(team, encoder,boosted_rewards)
         self.model = model
         self.epsilon = epsilon
 
 
     def generate_move(self, env):
+        starting_board = self.encode_env(env)
         if random.random() < self.epsilon:
             best_move = None
             best_score = -inf
@@ -46,7 +70,6 @@ class ML_Player(Player):
             for action in env.legal_moves:
                 env.push(action)
                 encoded_board = self.encode_env(env)
-                #print(encoded_board.shape)
                 pred = self.model.predict(encoded_board)[0][0]
                 env.pop()
                 if pred > best_score:
@@ -59,7 +82,7 @@ class ML_Player(Player):
             env.push(best_move)
             chosen_board = self.encode_env(env)
 
-        self.history.append(chosen_board)
+        self.history.append([starting_board,chosen_board])
         return best_move
 
     def __repr__(self):
