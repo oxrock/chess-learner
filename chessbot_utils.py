@@ -1,8 +1,13 @@
 from collections import deque
 import random
-from tensorflow import keras
+from tensorflow import keras,function
 import numpy as np
 import pickle
+
+@function
+def fast_predict(x,model):
+    return model(x, training=False)[0][0]
+
 
 def create_piece_dict() -> dict:
     piece_encoder = {
@@ -22,21 +27,22 @@ def create_piece_dict() -> dict:
     }
     return piece_encoder
 
+
 def load_memorybank():
     try:
-        bank = pickle.load( open( "gameplay_memory-v1.mem", "rb" ) )
+        bank = pickle.load(open("gameplay_memory-v1.mem", "rb"))
         print("Loaded memory bank from file")
     except:
         print("Loading memorybank failed, creating new one.")
-        bank = deque(maxlen=50000)
+        bank = deque(maxlen=200000)
 
     return bank
 
-def load_model(model_path,encoder,env):
-    feature_example = [encoder[x] for x in str(env.reset()).split()]
-    feature_example.append(1) #1 for white, -1 for black
-    feature_example = np.array([feature_example])
 
+def load_model(model_path, encoder, env):
+    feature_example = [encoder[x] for x in str(env.reset()).split()]
+    feature_example.append(1)  # 1 for white, -1 for black
+    feature_example = np.array([feature_example])
     try:
         model = keras.models.load_model(model_path)
         print("loaded model successfully!")
@@ -44,19 +50,26 @@ def load_model(model_path,encoder,env):
     except:
         print("No model information found, creating new model!")
         model = keras.Sequential()
-        model.add(keras.layers.Dense(len(feature_example), input_shape=feature_example.shape[1:]))
-        model.add(keras.layers.Dense(128, activation='relu'))
-        model.add(keras.layers.Dense(128, activation='relu'))
-        model.add(keras.layers.Dense(1, activation='relu'))
-        model.compile(optimizer=keras.optimizers.Adam(lr=0.001), loss='mean_squared_error', metrics=["accuracy"])
+        model.add(
+            keras.layers.Dense(
+                len(feature_example), input_shape=feature_example.shape[1:]
+            )
+        )
+
+        model.add(keras.layers.Dense(1024, activation="tanh"))
+        model.add(keras.layers.Dense(1024, activation="tanh"))
+        model.add(keras.layers.Dense(1, activation="tanh"))
+        #model.compile(optimizer="SGD", loss="mean_squared_error", metrics=["mean_absolute_error"])
+        model.compile(optimizer="adam", loss="huber")
         model.save(model_path)
-        #model.save("chess_model-v1.mdl")
+        # model.save("chess_model-v1.mdl")
 
     return model
 
-def save_data(model_path,model,memory):
+
+def save_data(model_path, model, memory):
     try:
-        #model.save("chess_model-v1.mdl")
+        # model.save("chess_model-v1.mdl")
         model.save(model_path)
         pickle.dump(memory, open("gameplay_memory-v1.mem", "wb"))
         print("Data saved.")
@@ -64,23 +77,30 @@ def save_data(model_path,model,memory):
         print("Failed to save data!")
         print(str(e))
 
-def load_data(model_path,encoder,env):
-    return load_model(model_path,encoder,env),load_memorybank()
 
-def create_training_data(mem,batchsize=64):
-    batch = random.sample(mem,batchsize)
+def load_data(model_path, encoder, env):
+    return load_model(model_path, encoder, env), load_memorybank()
+
+
+def create_training_data(mem, batchsize=64):
+    batch = random.sample(mem, batchsize)
+    # features = np.array([x[0] for x in batch])
+    # labels = np.array([[[x[1] for x in batch]]])
     features = np.array([x[0] for x in batch])
-    labels = np.array([[[x[1] for x in batch]]])
-    return features,labels
+    labels = np.array([x[1] for x in batch])
+    return features, labels
 
 
-def train_model(model,memory):
+def train_model(model, memory, batch_size=256, epochs=1):
     if len(memory) > 1000:
-        feat, labels = create_training_data(memory, batchsize=128)
-        model.fit(feat[0], labels, epochs=1, batch_size=32, verbose=1)
+        feat, labels = create_training_data(memory, batchsize=batch_size)
+        model.fit(feat, labels, epochs=epochs, batch_size=32, verbose=1)
 
     else:
-        print(f"Only {len(memory)} experiences in the memorybank so far. Waiting for 1000 minimum")
+        print(
+            f"Only {len(memory)} experiences in the memorybank so far. Waiting for 1000 minimum"
+        )
+
 
 if __name__ == "__main__":
     pass
