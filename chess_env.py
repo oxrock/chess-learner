@@ -277,7 +277,6 @@ def data_gobbler(q: Queue):
         if not q.empty():
             data = q.get()
             game_count += 1
-            print(f"{game_count} matches trained so far!")
             train_count += 1
             for item in data:
                 memory_bank.append(item)
@@ -285,6 +284,7 @@ def data_gobbler(q: Queue):
                 train_model(model, memory_bank)
                 save_data("chess_model-v1.mdl", model, memory_bank)
                 train_count = 0
+                print(f"{game_count} matches trained so far!")
 
             if game_count %1000 == 0:
                 save_data("chess_model-trainer_1.mdl", model, memory_bank)
