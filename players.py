@@ -43,12 +43,12 @@ class Player:
         #         if val < 0:
         #             score += abs(val)
         if team == 1:
-            for i in range(len(encoded_board)-1):
+            for i in range(len(encoded_board) - 1):
                 val = self.score_encoder[tuple(encoded_board[i])]
                 if val > 0:
                     score += abs(val)
         else:
-            for i in range(len(encoded_board)-1):
+            for i in range(len(encoded_board) - 1):
                 val = self.score_encoder[tuple(encoded_board[i])]
                 if val < 0:
                     score += abs(val)
@@ -87,7 +87,6 @@ class Player:
         # print(f"labeled data[0][0] length: {len(labeled_data[0][0])}")
         # print(f"labeled data[0][1] : {labeled_data[0][1]}")
         # print()
-
 
         return labeled_data
 
@@ -149,7 +148,7 @@ class ML_Player(Player):
             best_score = -inf
             chosen_board = None
 
-            #print("==========================")
+            # print("==========================")
             for count, action in enumerate(env.legal_moves):
                 same = True
                 env.push(action)
@@ -157,7 +156,7 @@ class ML_Player(Player):
                 pred_board = np.array([encoded_board])
                 # print(f"encoded board shape: {encoded_board.shape}")
                 pred = float(fast_predict(pred_board, self.model))
-                #print(pred)
+                # print(pred)
                 env.pop()
                 if pred > best_score:
                     best_move = action

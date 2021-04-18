@@ -14,7 +14,7 @@ from chessbot_utils import (
     load_trainer,
     create_score_encoder,
     create_piece_decoder,
-    setup
+    setup,
 )
 from multiprocessing import Process, Queue
 import numpy as np
@@ -438,7 +438,7 @@ def data_gobbler(q: Queue, training_method: int):
             for item in data:
                 experience_count += 1
                 memory_bank.append(item)
-                #print(item)
+                # print(item)
             if abs(data[-1][1]) < 1:
                 draw_count += 1
 
@@ -460,20 +460,18 @@ def data_gobbler(q: Queue, training_method: int):
                 model_count += 1
                 model.save(f"chess_model-trainer_{model_count}.mdl")
                 set_tracker_data("model_tracker.txt", model_count)
-            #print(f"games: {game_count} | game length: {len(data)/2}")
+            # print(f"games: {game_count} | game length: {len(data)/2}")
 
 
 if __name__ == "__main__":
-    #env = gym.make("Chess-v0")
-    #encoder = create_piece_dict()
-    #decoder = create_piece_decoder()
-    #score_encoder = create_score_encoder()
-    #model, memory_bank = load_data("chess_model-v1.mdl", encoder, env)
+    # env = gym.make("Chess-v0")
+    # encoder = create_piece_dict()
+    # decoder = create_piece_decoder()
+    # score_encoder = create_score_encoder()
+    # model, memory_bank = load_data("chess_model-v1.mdl", encoder, env)
     # train_model(model, memory_bank, batch_size=len(memory_bank))
     # save_data("chess_model-v1.mdl", model, memory_bank)
     # print("done")
-
-
 
     try:
         my_q = Queue()
@@ -504,7 +502,12 @@ if __name__ == "__main__":
         fo_pool = [
             Process(
                 target=classless_trainer,
-                args=(my_q, selected_method, False, True if verbosity.lower() == "y" else False),
+                args=(
+                    my_q,
+                    selected_method,
+                    False,
+                    True if verbosity.lower() == "y" else False,
+                ),
                 daemon=True,
             )
             for i in range(num_processes)

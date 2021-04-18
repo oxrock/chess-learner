@@ -10,7 +10,6 @@ def fast_predict(x, model) -> float:
     return model(x, training=False)[0][0]
 
 
-
 # def create_piece_dict() -> dict:
 #     piece_encoder = {
 #         "p": 1 / 6,
@@ -28,7 +27,6 @@ def fast_predict(x, model) -> float:
 #         ".": 0,
 #     }
 #     return piece_encoder
-
 
 
 def create_piece_dict() -> dict:
@@ -49,21 +47,22 @@ def create_piece_dict() -> dict:
     }
     return piece_encoder
 
+
 def create_piece_decoder() -> dict:
     piece_encoder = {
-        (1, 0, 0, 0, 0, 0, 0):"p",
-        (-1, 0, 0, 0, 0, 0, 0):"P",
-        (0, 1, 0, 0, 0, 0, 0):"n",
-        (0, -1, 0, 0, 0, 0, 0):"N",
-        (0, 0, 1, 0, 0, 0, 0):"b",
-        (0, 0, -1, 0, 0, 0, 0):"B",
-        (0, 0, 0, 1, 0, 0, 0):"r",
-        (0, 0, 0, -1, 0, 0, 0):"R",
-        (0, 0, 0, 0, 1, 0, 0):"q",
-        (0, 0, 0, 0, -1, 0, 0):"Q",
-        (0, 0, 0, 0, 0, 1, 0):"k",
-        (0, 0, 0, 0, 0, -1, 0):"K",
-        (0, 0, 0, 0, 0, 0, 0):"."
+        (1, 0, 0, 0, 0, 0, 0): "p",
+        (-1, 0, 0, 0, 0, 0, 0): "P",
+        (0, 1, 0, 0, 0, 0, 0): "n",
+        (0, -1, 0, 0, 0, 0, 0): "N",
+        (0, 0, 1, 0, 0, 0, 0): "b",
+        (0, 0, -1, 0, 0, 0, 0): "B",
+        (0, 0, 0, 1, 0, 0, 0): "r",
+        (0, 0, 0, -1, 0, 0, 0): "R",
+        (0, 0, 0, 0, 1, 0, 0): "q",
+        (0, 0, 0, 0, -1, 0, 0): "Q",
+        (0, 0, 0, 0, 0, 1, 0): "k",
+        (0, 0, 0, 0, 0, -1, 0): "K",
+        (0, 0, 0, 0, 0, 0, 0): ".",
     }
     return piece_encoder
 
@@ -123,14 +122,20 @@ def setup(encoder, env):
     feature_example = np.array([feature_example])
     model = keras.Sequential()
     model.add(
-        keras.layers.Dense(feature_example.shape[1], input_shape=feature_example.shape[1:])
+        keras.layers.Dense(
+            feature_example.shape[1], input_shape=feature_example.shape[1:]
+        )
     )
     model.add(keras.layers.Dense(1024, activation="relu"))
     model.add(keras.layers.Dense(1024, activation="relu"))
     model.add(keras.layers.Dense(1024, activation="relu"))
     model.add(keras.layers.Dense(1, activation="linear"))
     # model.compile(optimizer="SGD", loss="mean_squared_error", metrics=["mean_absolute_error"])
-    model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001), loss='mean_squared_error', metrics=['mean_absolute_error'])
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=0.0001),
+        loss="mean_squared_error",
+        metrics=["mean_absolute_error"],
+    )
     model.save("chess_model-v1.mdl")
     model.save("chess_model-trainer_1.mdl")
 
