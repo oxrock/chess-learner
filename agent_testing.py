@@ -11,7 +11,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 def load_all_models(encoder, env):
     return [
         load_model(f"chess_model-trainer_{x+1}.mdl", encoder, env)
-        for x in range(get_tracker_data("model_tracker.txt"))
+        for x in range(get_tracker_data("model_tracker.txt")[0])
     ]
 
 
@@ -56,10 +56,10 @@ def testing_gauntlet():
                 else:
                     players = [j + 1, i + 1]
                     player_white = ML_Player_Trainer(
-                        1, piece_encoder, score_encoder, False, models[j]
+                        1, piece_encoder, score_encoder, False, models[j], epsilon=1
                     )
                     player_black = ML_Player_Trainer(
-                        0, piece_encoder, score_encoder, False, models[i]
+                        0, piece_encoder, score_encoder, False, models[i], epsilon=1
                     )
 
                 white, black, result = play_match(player_white, player_black, env)
@@ -75,7 +75,7 @@ def testing_gauntlet():
                 match_count += 1
 
         print(
-            f"model {i+1} has finshed thier games with a score of {model_tallies[i+1]}"
+            f"model {i+1} has finished their games with a score of {model_tallies[i+1]}"
         )
 
     print(f"Running {match_count} matches took {time()-start_time} seconds")
