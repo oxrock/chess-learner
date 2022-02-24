@@ -113,8 +113,6 @@ class Player:
             env.push(action)
             encoded_board = self.encode_env(env, self.team*-1)
             pred = player_score - self.get_board_score(starting_board, -self.team, reverse=True)[1]
-            if pred != 0:
-                print(f"{player_score=}, {pred=}")
             result = self.terminal_balancer(env, encoded_board, self.team * -1, reverse=True)
             if result >= 1:
                 pred += 100
