@@ -19,7 +19,7 @@ class Player:
         self.score_encoder = score_encoder
         self.decoder = create_piece_decoder()
         self.boosted_rewards = boosted_rewards
-        self.gamma = np.exp(np.log(0.5) / 10)
+        self.gamma = np.exp(np.log(0.5) / 5)
         self.history = []
         self.ignore_types = [".", "1", "-1"]
         self.pieces = ["P", "N", "B", "R", "Q", "K"]
