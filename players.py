@@ -52,7 +52,7 @@ class Player:
             env_list = self.convert_board(env_list)
         temp = [self.encoder[x] for x in env_list]
         _scores = self.get_board_score(temp, team)
-        temp.append([float(_scores[0])/float(_scores[1])])
+        temp.append([self.score_ratio(_scores[0], _scores[1])])
         return temp
 
     def repeat_move_adjuster(self, action, past_index) -> float:
@@ -101,6 +101,9 @@ class Player:
 
 
         return my_score, enemy_score
+
+    def score_ratio(self, p_score, e_score):
+        return p_score/(p_score+e_score)
 
     def get_enemy_greedy_move(self, env):
         starting_board = self.encode_env(env, self.team)
